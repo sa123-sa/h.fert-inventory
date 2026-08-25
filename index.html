@@ -184,13 +184,21 @@
     let isBossMode = false;
     let items = [];
 
-    // Listen for live updates from the database
+        // Listen for live updates from the database
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
-      items = data ? data : [];
+      
+      // FIREBASE FIX: Safely convert Objects back into true Arrays
+      if (data) {
+        items = Array.isArray(data) ? data : Object.values(data);
+      } else {
+        items = [];
+      }
+      
       window.renderItems();
     });
 
+  
     // Pushes changes back to the live database
     function saveToStorage() { 
       set(inventoryRef, items);

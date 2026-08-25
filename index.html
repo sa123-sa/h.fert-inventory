@@ -327,7 +327,7 @@
       
       grid.innerHTML = '';
 
-      const filtered = items.filter(item => {
+            const filtered = items.filter(item => {
         const matchesSearch = (item.name || "").toLowerCase().includes(search) || (item.technical || "").toLowerCase().includes(search);
         const matchesType = fType === 'all' || item.type === fType;
         const matchesCompany = fCompany === 'all' || item.company === fCompany;
@@ -335,7 +335,41 @@
         return matchesSearch && matchesType && matchesCompany && matchesTech;
       });
 
+      // --- NEW SORTING LOGIC ---
+      filtered.sort((a, b) => {
+          // Calculate total pieces in stock for Product A
+          const stockA = (a.variants || []).reduce((sum, v) => {
+              let cQty = parseInt(v.caseQty) || 0;
+              let lQty = parseInt(v.looseQty) || 0;
+              let pOf = parseInt(v.packOf) || 1;
+              return sum + (cQty * pOf) + lQty;
+          }, 0);
+          
+          // Calculate total pieces in stock for Product B
+          const stockB = (b.variants || []).reduce((sum, v) => {
+              let cQty = parseInt(v.caseQty) || 0;
+              let lQty = parseInt(v.looseQty) || 0;
+              let pOf = parseInt(v.packOf) || 1;
+              return sum + (cQty * pOf) + lQty;
+          }, 0);
+
+          const isOutA = stockA === 0;
+          const isOutB = stockB === 0;
+
+          // Rule 1: If one is out of stock and the other isn't, put the out-of-stock one at the bottom
+          if (isOutA !== isOutB) {
+              return isOutA ? 1 : -1; 
+          }
+
+          // Rule 2: Otherwise (both in stock OR both out of stock), sort alphabetically by name
+          const nameA = (a.name || "").toLowerCase();
+          const nameB = (b.name || "").toLowerCase();
+          return nameA.localeCompare(nameB);
+      });
+      // -------------------------
+
       filtered.forEach(item => {
+
         let variantsHTML = (item.variants || []).map((v, index) => {
           let cQty = parseInt(v.caseQty) || 0;
           let lQty = parseInt(v.looseQty) || 0;

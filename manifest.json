@@ -1,0 +1,15 @@
+{
+  "name": "Hoque Fertilizer Inventory",
+  "short_name": "Hoque Inv",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256083.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

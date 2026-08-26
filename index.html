@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hoque Fertilizer - Live Inventory</title>
+  
+  <!-- Add to Home Screen (PWA) Links -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256083.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -20,43 +28,59 @@
       --brand: #3b82f6;
       --row-bg: #0f172a;
       --row-bg-alt: #162032;
+      --qty-color: #2dd4bf;
+      --more-btn: #a3e635;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 1.5rem; max-width: 1200px; margin: auto; }
 
-    /* Header & Boss Bar */
-    header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
-    .badge { color: var(--brand); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    h1 { font-size: 2rem; font-weight: 800; margin-top: 0.2rem; letter-spacing: -0.02em; }
-    .status { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); background: var(--card-bg); padding: 4px 10px; border-radius: 20px;}
-    .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+    /* Header & Login */
+    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
+    .logo-area { display: flex; flex-direction: column; gap: 4px; }
+    .badge-container { display: flex; align-items: center; gap: 12px; }
+    .badge { color: var(--text); font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--accent); background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 20px; font-weight: 600;}
+    .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-    .boss-bar { background: linear-gradient(145deg, var(--card-bg), #0f172a); border: 1px solid var(--card-border); padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;}
-    .btn { background: var(--accent); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn-danger { background: var(--danger); }
+    h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; }
+    
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;}
+    .btn:hover { background: var(--row-bg); transform: translateY(-1px); }
+    .btn-brand { background: var(--brand); color: white; border: none; }
+    .btn-brand:hover { background: #2563eb; }
+    .btn-danger { background: var(--danger); border: none; color: white;}
     .btn-danger:hover { background: var(--danger-hover); }
-    .btn-brand { background: var(--brand); }
     .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 
-    /* Controls & Grid */
+    /* Controls (Fixed scroll issue) */
     .controls { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 1.5rem; }
     @media (min-width: 768px) { .controls { grid-template-columns: 2fr 1fr 1fr 1fr; } }
     input, select { background: var(--row-bg); border: 1px solid var(--card-border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; width: 100%; font-size: 0.9rem; transition: border 0.2s; }
     input:focus, select:focus { border-color: var(--brand); }
 
+    /* Main Grid & Public Card UI */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.2rem; }
     .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
     .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: #475569; }
-    .card-header { margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
-    .card-type { font-size: 0.75rem; color: var(--brand); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: 0.05em; }
-    .card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff; }
+    
+    .card-header-main { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-type { font-size: 0.75rem; color: var(--brand); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.08em; }
+    .card-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; color: #fff; line-height: 1.2;}
     .card-details { font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
     
-    /* Advanced Packing Variants */
-    .variant-list { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
+    .card-info-right { display: flex; flex-direction: column; align-items: flex-end; text-align: right; min-width: 100px; }
+    .total-qty-label { color: var(--qty-color); font-size: 0.95rem; font-weight: 500; }
+    .total-qty-value { color: var(--qty-color); font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
+    
+    .card-footer-main { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 0.8rem; }
+    .more-details-btn { background: none; border: none; color: var(--more-btn); font-size: 1rem; cursor: pointer; padding: 0; font-weight: 500; text-decoration: none; }
+    .more-details-btn:hover { text-decoration: underline; }
+    .last-updated { font-size: 0.75rem; color: #64748b; font-style: italic; }
+
+    /* Hidden Admin/Stock Area */
+    .variant-list { flex-direction: column; gap: 12px; margin-top: 1rem; border-top: 1px solid var(--card-border); padding-top: 1rem; }
     .variant-row { background: var(--row-bg); padding: 0.8rem; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--card-border); }
     .v-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
     .v-size { font-weight: 700; color: #fff; font-size: 1.05rem; }
@@ -74,14 +98,11 @@
     .qty-number:hover { background: rgba(255,255,255,0.1); }
     
     .v-total-vol { font-weight: 800; color: var(--brand); font-size: 1rem; text-align: right; background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #1e293b;}
+    
+    .admin-tools { display: none; width: 100%; justify-content: flex-end; gap: 8px; margin-top: 10px; border-top: 1px solid var(--card-border); padding-top: 10px;}
 
     .low-stock-text { color: var(--warning); }
     .out-stock-text { color: var(--danger); }
-
-    /* Card Footer */
-    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--card-border); margin-top: auto; }
-    .total-stock { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
-    .admin-tools { display: none; gap: 8px; }
 
     /* Modal */
     .modal { display: none; position: fixed; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(4px); align-items: flex-start; justify-content: center; padding: 2rem 1rem; z-index: 100; overflow-y: auto; }
@@ -89,7 +110,6 @@
     .modal-content h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
     .modal-content label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: -10px; }
     
-    /* Advanced Variant Builder in Modal */
     .variant-builder { display: flex; flex-direction: column; gap: 12px; margin-top: 0.5rem; }
     .vb-group { background: var(--bg); border: 1px solid var(--card-border); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
     .vb-row-top { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 10px; }
@@ -100,20 +120,18 @@
 <body>
 
   <header>
-    <div>
-      <p class="badge">Hoque Fertilizer</p>
-      <h1>Inventory & Rate Board</h1>
+    <div class="logo-area">
+      <div class="badge-container">
+        <p class="badge">Hoque Fertilizer</p>
+        <div class="status"><span class="dot"></span> Live Sync</div>
+      </div>
+      <h1>Inventory Stock Board</h1>
     </div>
-    <div class="status"><span class="dot"></span> Live Sync Active</div>
+    <div class="header-actions">
+      <button class="btn btn-brand" id="add-item-btn" style="display:none;" onclick="window.openModal()">+ Add Product</button>
+      <button class="btn" id="login-btn" onclick="window.toggleBossMode()">LOGIN</button>
+    </div>
   </header>
-
-  <div class="boss-bar">
-    <span id="boss-status" style="font-weight: 600; color: var(--text-muted);">🔒 Viewing Mode (Read Only)</span>
-    <div style="display: flex; gap: 10px;">
-      <button class="btn btn-sm" id="add-item-btn" style="display:none;" onclick="window.openModal()">+ Add New Product</button>
-      <button class="btn btn-sm" id="boss-toggle-btn" onclick="window.toggleBossMode()">Unlock Boss Mode</button>
-    </div>
-  </div>
 
   <div class="controls">
     <input type="text" id="search" placeholder="🔍 Search product or chemical..." oninput="window.renderItems()">
@@ -147,9 +165,7 @@
       </datalist>
 
       <label style="margin-top: 10px;">Advanced Packing Sizes & Stock</label>
-      <div class="variant-builder" id="variant-builder-container">
-        <!-- Rows injected here -->
-      </div>
+      <div class="variant-builder" id="variant-builder-container"></div>
       <button class="btn btn-brand btn-sm" style="align-self: flex-start;" onclick="window.addVariantFormRow()">+ Add Another Packing Size</button>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
@@ -164,7 +180,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-    // Your exact Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCkhcHgBs1-TB2bJHEvPXzNFwVNxfWTeNo",
       authDomain: "h-fert.firebaseapp.com",
@@ -180,40 +195,51 @@
     const db = getDatabase(app);
     const inventoryRef = ref(db, 'inventory');
 
-    const BOSS_PIN = "1234"; 
+    const BOSS_PIN = "Jeke@1234"; 
     let isBossMode = false;
     let items = [];
 
-    // Listen for live updates from the database
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
-      items = data ? data : [];
+      if (data) {
+        items = Array.isArray(data) ? data : Object.values(data);
+      } else {
+        items = [];
+      }
       window.renderItems();
     });
 
-    // Pushes changes back to the live database
     function saveToStorage() { 
       set(inventoryRef, items);
     }
 
     window.toggleBossMode = function() {
       if (!isBossMode) {
-        const pin = prompt("Enter BOSS MODE PIN:");
+        const pin = prompt("Enter Admin Password:");
         if (pin === BOSS_PIN) {
           isBossMode = true;
-          document.getElementById('boss-status').innerHTML = "🔓 <b>BOSS MODE ACTIVE</b> — Full Stock Controls Enabled";
-          document.getElementById('boss-status').style.color = "var(--accent)";
-          document.getElementById('boss-toggle-btn').innerText = "Lock System";
+          document.getElementById('login-btn').innerText = "LOGOUT";
           document.getElementById('add-item-btn').style.display = "inline-flex";
-        } else if (pin !== null) alert("Incorrect PIN");
+        } else if (pin !== null) alert("Incorrect Password");
       } else {
         isBossMode = false;
-        document.getElementById('boss-status').innerHTML = "🔒 Viewing Mode (Read Only)";
-        document.getElementById('boss-status').style.color = "var(--text-muted)";
-        document.getElementById('boss-toggle-btn').innerText = "Unlock Boss Mode";
+        document.getElementById('login-btn').innerText = "LOGIN";
         document.getElementById('add-item-btn').style.display = "none";
       }
       window.renderItems();
+    }
+
+    window.toggleDetails = function(id) {
+      const detailsDiv = document.getElementById(`details-${id}`);
+      const btn = document.getElementById(`btn-toggle-${id}`);
+      
+      if (detailsDiv.style.display === 'flex') {
+        detailsDiv.style.display = 'none';
+        btn.innerText = 'More details';
+      } else {
+        detailsDiv.style.display = 'flex';
+        btn.innerText = 'Hide details';
+      }
     }
 
     function updateFilters() {
@@ -243,9 +269,7 @@
     function calculateTotalVolume(sizeStr, totalPieces) {
         if (!sizeStr || totalPieces === 0) return "0";
         const match = sizeStr.toLowerCase().replace(/\s/g, '').match(/([\d.]+)(ml|l|ltr|g|kg)/);
-        
         if (!match) return totalPieces + " Pcs"; 
-
         let value = parseFloat(match[1]);
         let unit = match[2];
         let totalVal = value * totalPieces;
@@ -262,16 +286,60 @@
         return totalPieces + " Pcs";
     }
 
+    function calculateGrandTotalVolume(variants) {
+        if (!variants || variants.length === 0) return "0 L/Kg";
+
+        let totalMl = 0;
+        let totalGrams = 0;
+        let totalPcsOnly = 0;
+        let hasVolume = false;
+        let hasWeight = false;
+
+        variants.forEach(v => {
+            let cQty = parseInt(v.caseQty) || 0;
+            let lQty = parseInt(v.looseQty) || 0;
+            let pOf = parseInt(v.packOf) || 1;
+            let totalPcs = (cQty * pOf) + lQty;
+
+            if (totalPcs === 0) return;
+
+            const match = (v.size || "").toLowerCase().replace(/\s/g, '').match(/([\d.]+)(ml|l|ltr|g|kg)/);
+            
+            if (match) {
+                let val = parseFloat(match[1]);
+                let unit = match[2];
+                if (unit === 'ml') { totalMl += (val * totalPcs); hasVolume = true; }
+                else if (unit === 'l' || unit === 'ltr') { totalMl += (val * 1000 * totalPcs); hasVolume = true; }
+                else if (unit === 'g') { totalGrams += (val * totalPcs); hasWeight = true; }
+                else if (unit === 'kg') { totalGrams += (val * 1000 * totalPcs); hasWeight = true; }
+            } else {
+                totalPcsOnly += totalPcs;
+            }
+        });
+
+        let results = [];
+        if (hasVolume) {
+            if (totalMl >= 1000) results.push((totalMl / 1000).toFixed(2).replace(/\.00$/, '') + "L");
+            else results.push(totalMl + "ml");
+        }
+        if (hasWeight) {
+            if (totalGrams >= 1000) results.push((totalGrams / 1000).toFixed(2).replace(/\.00$/, '') + "Kg");
+            else results.push(totalGrams + "g");
+        }
+        
+        if (results.length === 0 && totalPcsOnly === 0) return "0";
+        if (results.length === 0) return totalPcsOnly + " Pcs";
+        
+        return results.join(" + ");
+    }
+
     function normalizeStock(v) {
         let packOf = parseInt(v.packOf) || 1;
         if (packOf <= 0) packOf = 1; 
-        
         let cQty = parseInt(v.caseQty) || 0;
         let lQty = parseInt(v.looseQty) || 0;
-        
         let totalPieces = (cQty * packOf) + lQty;
         if (totalPieces < 0) totalPieces = 0;
-        
         v.caseQty = Math.floor(totalPieces / packOf);
         v.looseQty = totalPieces % packOf;
     }
@@ -287,6 +355,7 @@
             v.looseQty = (parseInt(v.looseQty) || 0) + amount;
         }
         normalizeStock(v);
+        product.lastUpdated = Date.now(); // Record Timestamp
         saveToStorage();
       }
     }
@@ -304,6 +373,7 @@
           if (type === 'case') v.caseQty = parseInt(input) || 0;
           if (type === 'loose') v.looseQty = parseInt(input) || 0;
           normalizeStock(v);
+          product.lastUpdated = Date.now(); // Record Timestamp
           saveToStorage();
         }
       }
@@ -327,12 +397,27 @@
         return matchesSearch && matchesType && matchesCompany && matchesTech;
       });
 
+      filtered.sort((a, b) => {
+          const stockA = (a.variants || []).reduce((sum, v) => sum + ((parseInt(v.caseQty) || 0) * (parseInt(v.packOf) || 1)) + (parseInt(v.looseQty) || 0), 0);
+          const stockB = (b.variants || []).reduce((sum, v) => sum + ((parseInt(v.caseQty) || 0) * (parseInt(v.packOf) || 1)) + (parseInt(v.looseQty) || 0), 0);
+
+          if ((stockA === 0) !== (stockB === 0)) return stockA === 0 ? 1 : -1; 
+          return (a.name || "").localeCompare(b.name || "");
+      });
+
       filtered.forEach(item => {
+        
+        let grandTotalVolumeText = calculateGrandTotalVolume(item.variants);
+        
+        // Calculate raw pieces for the Stock Badge
+        let rawTotalPieces = 0;
         let variantsHTML = (item.variants || []).map((v, index) => {
           let cQty = parseInt(v.caseQty) || 0;
           let lQty = parseInt(v.looseQty) || 0;
           let pOf = parseInt(v.packOf) || 1;
           let totalPcs = (cQty * pOf) + lQty;
+          
+          rawTotalPieces += totalPcs;
           
           let totalVol = calculateTotalVolume(v.size, totalPcs);
           let colorClass = totalPcs === 0 ? "out-stock-text" : (totalPcs < pOf ? "low-stock-text" : "");
@@ -366,7 +451,7 @@
                   </div>
                 </div>
 
-                <div class="v-total-vol ${colorClass}" title="Total Calculated Quantity">
+                <div class="v-total-vol ${colorClass}" title="Calculated Quantity">
                   ${totalVol}
                 </div>
               </div>
@@ -378,34 +463,61 @@
             variantsHTML = `<div class="variant-row" style="color:var(--text-muted); font-style:italic;">No packing sizes listed</div>`;
         }
 
+        // Generate Warning Badges
+        let stockBadge = "";
+        if (rawTotalPieces === 0) {
+            stockBadge = `<div style="background: var(--danger); color: white; font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; font-weight: 800; display: inline-block; margin-bottom: 6px;">OUT OF STOCK</div>`;
+        } else if (rawTotalPieces <= 5) {
+            stockBadge = `<div style="background: var(--warning); color: #000; font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; font-weight: 800; display: inline-block; margin-bottom: 6px;">LOW STOCK</div>`;
+        }
+
+        // Format Last Updated Time
+        let lastUpdatedText = "Never updated";
+        if (item.lastUpdated) {
+            let d = new Date(item.lastUpdated);
+            lastUpdatedText = `Updated: ${d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true })}`;
+        }
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <div class="card-header">
-            ${item.type ? `<div class="card-type">${item.type}</div>` : ''}
-            <div class="card-title">${item.name || 'Unnamed Product'}</div>
-            <div class="card-details">
-              ${item.company ? `<div>🏢 ${item.company}</div>` : ''}
-              ${item.technical ? `<div style="margin-top: 4px;">🧪 ${item.technical}</div>` : ''}
+          <div class="card-header-main">
+            <div class="card-info-left">
+              ${stockBadge}
+              ${item.type ? `<div class="card-type" style="margin-top: ${stockBadge ? '2px' : '0'}">${item.type}</div>` : ''}
+              <div class="card-title">${item.name || 'Unnamed Product'}</div>
+              <div class="card-details">
+                ${item.company ? `<div>🏢 ${item.company}</div>` : ''}
+                ${item.technical ? `<div style="margin-top: 4px;">🧪 ${item.technical}</div>` : ''}
+              </div>
             </div>
-          </div>
-          
-          <div class="variant-list">
-             ${variantsHTML}
+            
+            <div class="card-info-right">
+              <div class="total-qty-label">Total quantity</div>
+              <div class="total-qty-value">${grandTotalVolumeText}</div>
+            </div>
           </div>
 
-          <div class="card-footer">
-            <div class="admin-tools" style="display: ${isBossMode ? 'flex' : 'none'}; width: 100%; justify-content: flex-end;">
-              <button class="btn btn-sm" onclick="window.editItem(${item.id})">Edit Config</button>
-              <button class="btn btn-danger btn-sm" onclick="window.deleteItem(${item.id})">Delete Item</button>
-            </div>
+          <div class="card-footer-main" style="display: ${isBossMode ? 'none' : 'flex'};">
+             <div class="last-updated">🕒 ${lastUpdatedText}</div>
+             <button class="more-details-btn" id="btn-toggle-${item.id}" onclick="window.toggleDetails(${item.id})">More details</button>
+          </div>
+          
+          <div class="variant-list" id="details-${item.id}" style="display: ${isBossMode ? 'flex' : 'none'};">
+             ${variantsHTML}
+             
+             <div class="admin-tools" style="display: ${isBossMode ? 'flex' : 'none'}; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+                <div class="last-updated" style="color: var(--text-muted);">🕒 ${lastUpdatedText}</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="window.editItem(${item.id})">Edit Config</button>
+                    <button class="btn btn-danger btn-sm" onclick="window.deleteItem(${item.id})">Delete Item</button>
+                </div>
+             </div>
           </div>
         `;
         grid.appendChild(card);
       });
     }
-
-    /* --- Form / Modal Management --- */
 
     window.addVariantFormRow = function(size = '', packOf = '', packType = 'ctn', price = '', caseQty = '', looseQty = '') {
       const container = document.getElementById('variant-builder-container');
@@ -488,10 +600,10 @@
       if (id) {
         const item = items.find(i => i.id == id);
         if (item) { 
-            Object.assign(item, { name, company, technical, type, variants: newVariants }); 
+            Object.assign(item, { name, company, technical, type, variants: newVariants, lastUpdated: Date.now() }); 
         }
       } else {
-        items.unshift({ id: Date.now(), name, company, technical, type, variants: newVariants });
+        items.unshift({ id: Date.now(), name, company, technical, type, variants: newVariants, lastUpdated: Date.now() });
       }
 
       saveToStorage();

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoque Fertilizer - Live Inventory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --warning: #f59e0b;
+      --brand: #3b82f6;
+      --row-bg: #0f172a;
+      --row-bg-alt: #162032;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 1.5rem; max-width: 1200px; margin: auto; }
+
+    /* Header & Boss Bar */
+    header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
+    .badge { color: var(--brand); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    h1 { font-size: 2rem; font-weight: 800; margin-top: 0.2rem; letter-spacing: -0.02em; }
+    .status { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); background: var(--card-bg); padding: 4px 10px; border-radius: 20px;}
+    .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    .boss-bar { background: linear-gradient(145deg, var(--card-bg), #0f172a); border: 1px solid var(--card-border); padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;}
+    .btn { background: var(--accent); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-brand { background: var(--brand); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+
+    /* Controls & Grid */
+    .controls { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 1.5rem; }
+    @media (min-width: 768px) { .controls { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+    input, select { background: var(--row-bg); border: 1px solid var(--card-border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; width: 100%; font-size: 0.9rem; transition: border 0.2s; }
+    input:focus, select:focus { border-color: var(--brand); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.2rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: #475569; }
+    .card-header { margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; }
+    .card-type { font-size: 0.75rem; color: var(--brand); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: 0.05em; }
+    .card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff; }
+    .card-details { font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
+    
+    /* Advanced Packing Variants */
+    .variant-list { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
+    .variant-row { background: var(--row-bg); padding: 0.8rem; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--card-border); }
+    .v-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
+    .v-size { font-weight: 700; color: #fff; font-size: 1.05rem; }
+    .v-packinfo { font-size: 0.8rem; color: var(--text-muted); background: var(--card-bg); padding: 2px 8px; border-radius: 12px; }
+    .v-price { color: var(--accent); font-weight: 700; }
+    
+    .v-stock-area { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: var(--row-bg-alt); padding: 8px; border-radius: 6px; }
+    .stock-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .stock-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;}
+    
+    .qty-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-btn { background: #334155; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; align-items: center; justify-content: center; font-size: 1.1rem; line-height: 1;}
+    .qty-btn:hover { background: var(--brand); }
+    .qty-number { min-width: 25px; text-align: center; font-weight: 700; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 0.95rem; }
+    .qty-number:hover { background: rgba(255,255,255,0.1); }
+    
+    .v-total-vol { font-weight: 800; color: var(--brand); font-size: 1rem; text-align: right; background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #1e293b;}
+
+    .low-stock-text { color: var(--warning); }
+    .out-stock-text { color: var(--danger); }
+
+    /* Card Footer */
+    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--card-border); margin-top: auto; }
+    .total-stock { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+    .admin-tools { display: none; gap: 8px; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(4px); align-items: flex-start; justify-content: center; padding: 2rem 1rem; z-index: 100; overflow-y: auto; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); padding: 2rem; border-radius: 12px; width: 100%; max-width: 650px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin-bottom: 2rem; }
+    .modal-content h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .modal-content label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: -10px; }
+    
+    /* Advanced Variant Builder in Modal */
+    .variant-builder { display: flex; flex-direction: column; gap: 12px; margin-top: 0.5rem; }
+    .vb-group { background: var(--bg); border: 1px solid var(--card-border); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
+    .vb-row-top { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 10px; }
+    .vb-row-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
+    .vb-group input { padding: 0.6rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <p class="badge">Hoque Fertilizer</p>
+      <h1>Inventory & Rate Board</h1>
+    </div>
+    <div class="status"><span class="dot"></span> Live Sync Active</div>
+  </header>
+
+  <div class="boss-bar">
+    <span id="boss-status" style="font-weight: 600; color: var(--text-muted);">🔒 Viewing Mode (Read Only)</span>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-sm" id="add-item-btn" style="display:none;" onclick="window.openModal()">+ Add New Product</button>
+      <button class="btn btn-sm" id="boss-toggle-btn" onclick="window.toggleBossMode()">Unlock Boss Mode</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 Search product or chemical..." oninput="window.renderItems()">
+    <select id="type-filter" onchange="window.renderItems()"><option value="all">All Categories</option></select>
+    <select id="company-filter" onchange="window.renderItems()"><option value="all">All Brands</option></select>
+    <select id="tech-filter" onchange="window.renderItems()"><option value="all">All Chemicals</option></select>
+  </div>
+
+  <div class="grid" id="product-grid"></div>
+
+  <!-- Modal for Adding/Editing -->
+  <div class="modal" id="itemModal">
+    <div class="modal-content">
+      <h3 id="modal-title">Add / Edit Product</h3>
+      <input type="hidden" id="edit-id">
+      
+      <label>Product Name</label>
+      <input type="text" id="item-name" placeholder="e.g. Coragen">
+      
+      <label>Brand / Company (Optional)</label>
+      <input type="text" id="item-company" placeholder="e.g. FMC, Bayer, Dehaat">
+      
+      <label>Chemical Composition / Technical (Optional)</label>
+      <input type="text" id="item-tech" placeholder="e.g. Chlorantraniliprole 18.5% SC">
+      
+      <label>Category (Optional)</label>
+      <input type="text" id="item-type" list="type-options" placeholder="Select or type custom">
+      <datalist id="type-options">
+        <option value="Insecticide"><option value="Herbicide"><option value="Fungicide">
+        <option value="PGR"><option value="Fertilizer"><option value="Seeds">
+      </datalist>
+
+      <label style="margin-top: 10px;">Advanced Packing Sizes & Stock</label>
+      <div class="variant-builder" id="variant-builder-container">
+        <!-- Rows injected here -->
+      </div>
+      <button class="btn btn-brand btn-sm" style="align-self: flex-start;" onclick="window.addVariantFormRow()">+ Add Another Packing Size</button>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+        <button class="btn btn-danger" onclick="window.closeModal()">Cancel</button>
+        <button class="btn" onclick="window.saveItem()">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE INTEGRATION -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    // Your exact Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkhcHgBs1-TB2bJHEvPXzNFwVNxfWTeNo",
+      authDomain: "h-fert.firebaseapp.com",
+      databaseURL: "https://h-fert-default-rtdb.firebaseio.com",
+      projectId: "h-fert",
+      storageBucket: "h-fert.firebasestorage.app",
+      messagingSenderId: "339376459990",
+      appId: "1:339376459990:web:21443faf6f8a7851eff977",
+      measurementId: "G-GF4W6GFFWC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const inventoryRef = ref(db, 'inventory');
+
+    const BOSS_PIN = "1234"; 
+    let isBossMode = false;
+    let items = [];
+
+    // Listen for live updates from the database
+    onValue(inventoryRef, (snapshot) => {
+      const data = snapshot.val();
+      items = data ? data : [];
+      window.renderItems();
+    });
+
+    // Pushes changes back to the live database
+    function saveToStorage() { 
+      set(inventoryRef, items);
+    }
+
+    window.toggleBossMode = function() {
+      if (!isBossMode) {
+        const pin = prompt("Enter BOSS MODE PIN:");
+        if (pin === BOSS_PIN) {
+          isBossMode = true;
+          document.getElementById('boss-status').innerHTML = "🔓 <b>BOSS MODE ACTIVE</b> — Full Stock Controls Enabled";
+          document.getElementById('boss-status').style.color = "var(--accent)";
+          document.getElementById('boss-toggle-btn').innerText = "Lock System";
+          document.getElementById('add-item-btn').style.display = "inline-flex";
+        } else if (pin !== null) alert("Incorrect PIN");
+      } else {
+        isBossMode = false;
+        document.getElementById('boss-status').innerHTML = "🔒 Viewing Mode (Read Only)";
+        document.getElementById('boss-status').style.color = "var(--text-muted)";
+        document.getElementById('boss-toggle-btn').innerText = "Unlock Boss Mode";
+        document.getElementById('add-item-btn').style.display = "none";
+      }
+      window.renderItems();
+    }
+
+    function updateFilters() {
+      const typeFilter = document.getElementById('type-filter');
+      const companyFilter = document.getElementById('company-filter');
+      const techFilter = document.getElementById('tech-filter');
+
+      const currentType = typeFilter.value;
+      const currentCompany = companyFilter.value;
+      const currentTech = techFilter.value;
+
+      const types = [...new Set(items.map(i => i.type))].filter(Boolean).sort();
+      const companies = [...new Set(items.map(i => i.company))].filter(Boolean).sort();
+      const techs = [...new Set(items.map(i => i.technical))].filter(Boolean).sort();
+
+      const buildOptions = (arr, defaultLabel) => `<option value="all">${defaultLabel}</option>` + arr.map(a => `<option value="${a}">${a}</option>`).join('');
+
+      typeFilter.innerHTML = buildOptions(types, 'All Categories');
+      companyFilter.innerHTML = buildOptions(companies, 'All Brands');
+      techFilter.innerHTML = buildOptions(techs, 'All Chemicals');
+
+      if (types.includes(currentType)) typeFilter.value = currentType;
+      if (companies.includes(currentCompany)) companyFilter.value = currentCompany;
+      if (techs.includes(currentTech)) techFilter.value = currentTech;
+    }
+
+    function calculateTotalVolume(sizeStr, totalPieces) {
+        if (!sizeStr || totalPieces === 0) return "0";
+        const match = sizeStr.toLowerCase().replace(/\s/g, '').match(/([\d.]+)(ml|l|ltr|g|kg)/);
+        
+        if (!match) return totalPieces + " Pcs"; 
+
+        let value = parseFloat(match[1]);
+        let unit = match[2];
+        let totalVal = value * totalPieces;
+
+        if (unit === 'ml') {
+            return totalVal >= 1000 ? (totalVal / 1000).toFixed(2) + " Ltr" : totalVal + " ml";
+        } else if (unit === 'l' || unit === 'ltr') {
+            return totalVal.toFixed(2) + " Ltr";
+        } else if (unit === 'g') {
+            return totalVal >= 1000 ? (totalVal / 1000).toFixed(2) + " Kg" : totalVal + " g";
+        } else if (unit === 'kg') {
+            return totalVal.toFixed(2) + " Kg";
+        }
+        return totalPieces + " Pcs";
+    }
+
+    function normalizeStock(v) {
+        let packOf = parseInt(v.packOf) || 1;
+        if (packOf <= 0) packOf = 1; 
+        
+        let cQty = parseInt(v.caseQty) || 0;
+        let lQty = parseInt(v.looseQty) || 0;
+        
+        let totalPieces = (cQty * packOf) + lQty;
+        if (totalPieces < 0) totalPieces = 0;
+        
+        v.caseQty = Math.floor(totalPieces / packOf);
+        v.looseQty = totalPieces % packOf;
+    }
+
+    window.adjustStock = function(productId, vIndex, type, amount) {
+      if (!isBossMode) return;
+      const product = items.find(i => i.id === productId);
+      if (product && product.variants && product.variants[vIndex]) {
+        let v = product.variants[vIndex];
+        if (type === 'case') {
+            v.caseQty = (parseInt(v.caseQty) || 0) + amount;
+        } else if (type === 'loose') {
+            v.looseQty = (parseInt(v.looseQty) || 0) + amount;
+        }
+        normalizeStock(v);
+        saveToStorage();
+      }
+    }
+
+    window.manualStockEntry = function(productId, vIndex, type) {
+      if (!isBossMode) return;
+      const product = items.find(i => i.id === productId);
+      if (product && product.variants && product.variants[vIndex]) {
+        let v = product.variants[vIndex];
+        let current = type === 'case' ? (v.caseQty || 0) : (v.looseQty || 0);
+        let promptText = type === 'case' ? `Enter full ${v.packType}s:` : `Enter loose pieces:`;
+        
+        let input = prompt(promptText, current);
+        if (input !== null && input.trim() !== "") {
+          if (type === 'case') v.caseQty = parseInt(input) || 0;
+          if (type === 'loose') v.looseQty = parseInt(input) || 0;
+          normalizeStock(v);
+          saveToStorage();
+        }
+      }
+    }
+
+    window.renderItems = function() {
+      updateFilters(); 
+      const grid = document.getElementById('product-grid');
+      const search = document.getElementById('search').value.toLowerCase();
+      const fType = document.getElementById('type-filter').value;
+      const fCompany = document.getElementById('company-filter').value;
+      const fTech = document.getElementById('tech-filter').value;
+      
+      grid.innerHTML = '';
+
+      const filtered = items.filter(item => {
+        const matchesSearch = (item.name || "").toLowerCase().includes(search) || (item.technical || "").toLowerCase().includes(search);
+        const matchesType = fType === 'all' || item.type === fType;
+        const matchesCompany = fCompany === 'all' || item.company === fCompany;
+        const matchesTech = fTech === 'all' || item.technical === fTech;
+        return matchesSearch && matchesType && matchesCompany && matchesTech;
+      });
+
+      filtered.forEach(item => {
+        let variantsHTML = (item.variants || []).map((v, index) => {
+          let cQty = parseInt(v.caseQty) || 0;
+          let lQty = parseInt(v.looseQty) || 0;
+          let pOf = parseInt(v.packOf) || 1;
+          let totalPcs = (cQty * pOf) + lQty;
+          
+          let totalVol = calculateTotalVolume(v.size, totalPcs);
+          let colorClass = totalPcs === 0 ? "out-stock-text" : (totalPcs < pOf ? "low-stock-text" : "");
+
+          return `
+            <div class="variant-row">
+              <div class="v-header">
+                <div>
+                    <span class="v-size">${v.size || 'N/A'}</span>
+                    <span class="v-packinfo">Pack of ${pOf} / ${v.packType || 'ctn'}</span>
+                </div>
+                <span class="v-price">₹${v.price || 0}</span>
+              </div>
+              
+              <div class="v-stock-area">
+                <div class="stock-box">
+                  <span class="stock-label">Full ${v.packType || 'Ctn'}</span>
+                  <div class="qty-controls">
+                    <button class="qty-btn" style="display: ${isBossMode ? 'flex' : 'none'};" onclick="window.adjustStock(${item.id}, ${index}, 'case', -1)">-</button>
+                    <span class="qty-number ${cQty === 0 ? 'out-stock-text' : ''}" onclick="window.manualStockEntry(${item.id}, ${index}, 'case')">${cQty}</span>
+                    <button class="qty-btn" style="display: ${isBossMode ? 'flex' : 'none'};" onclick="window.adjustStock(${item.id}, ${index}, 'case', 1)">+</button>
+                  </div>
+                </div>
+                
+                <div class="stock-box">
+                  <span class="stock-label">Loose Pcs</span>
+                  <div class="qty-controls">
+                    <button class="qty-btn" style="display: ${isBossMode ? 'flex' : 'none'};" onclick="window.adjustStock(${item.id}, ${index}, 'loose', -1)">-</button>
+                    <span class="qty-number ${lQty === 0 && cQty === 0 ? 'out-stock-text' : ''}" onclick="window.manualStockEntry(${item.id}, ${index}, 'loose')">${lQty}</span>
+                    <button class="qty-btn" style="display: ${isBossMode ? 'flex' : 'none'};" onclick="window.adjustStock(${item.id}, ${index}, 'loose', 1)">+</button>
+                  </div>
+                </div>
+
+                <div class="v-total-vol ${colorClass}" title="Total Calculated Quantity">
+                  ${totalVol}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        if(!item.variants || item.variants.length === 0) {
+            variantsHTML = `<div class="variant-row" style="color:var(--text-muted); font-style:italic;">No packing sizes listed</div>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-header">
+            ${item.type ? `<div class="card-type">${item.type}</div>` : ''}
+            <div class="card-title">${item.name || 'Unnamed Product'}</div>
+            <div class="card-details">
+              ${item.company ? `<div>🏢 ${item.company}</div>` : ''}
+              ${item.technical ? `<div style="margin-top: 4px;">🧪 ${item.technical}</div>` : ''}
+            </div>
+          </div>
+          
+          <div class="variant-list">
+             ${variantsHTML}
+          </div>
+
+          <div class="card-footer">
+            <div class="admin-tools" style="display: ${isBossMode ? 'flex' : 'none'}; width: 100%; justify-content: flex-end;">
+              <button class="btn btn-sm" onclick="window.editItem(${item.id})">Edit Config</button>
+              <button class="btn btn-danger btn-sm" onclick="window.deleteItem(${item.id})">Delete Item</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    /* --- Form / Modal Management --- */
+
+    window.addVariantFormRow = function(size = '', packOf = '', packType = 'ctn', price = '', caseQty = '', looseQty = '') {
+      const container = document.getElementById('variant-builder-container');
+      const group = document.createElement('div');
+      group.className = 'vb-group';
+      group.innerHTML = `
+        <div class="vb-row-top">
+            <input type="text" class="inp-size" placeholder="Size (e.g. 250ml, 1kg)" value="${size}">
+            <input type="number" class="inp-packof" placeholder="Pack Of (e.g. 40)" value="${packOf}">
+            <input type="text" class="inp-packtype" placeholder="Type (ctn/bag)" value="${packType}">
+        </div>
+        <div class="vb-row-bottom">
+            <input type="number" class="inp-caseqty" placeholder="Cases" value="${caseQty}">
+            <input type="number" class="inp-looseqty" placeholder="Loose Pcs" value="${looseQty}">
+            <input type="number" class="inp-price" placeholder="Price (₹)" value="${price}">
+            <button class="btn btn-danger btn-sm" style="padding: 0.6rem;" onclick="this.closest('.vb-group').remove()">X</button>
+        </div>
+      `;
+      container.appendChild(group);
+    }
+
+    window.openModal = function(item = null) {
+      document.getElementById('itemModal').style.display = 'flex';
+      document.getElementById('variant-builder-container').innerHTML = ''; 
+      
+      if (item) {
+        document.getElementById('modal-title').innerText = "Edit Product";
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('item-name').value = item.name || '';
+        document.getElementById('item-company').value = item.company || '';
+        document.getElementById('item-tech').value = item.technical || '';
+        document.getElementById('item-type').value = item.type || '';
+        
+        if (item.variants && item.variants.length > 0) {
+            item.variants.forEach(v => window.addVariantFormRow(v.size, v.packOf, v.packType, v.price, v.caseQty, v.looseQty));
+        } else {
+            window.addVariantFormRow();
+        }
+      } else {
+        document.getElementById('modal-title').innerText = "Add New Product";
+        document.getElementById('edit-id').value = "";
+        document.getElementById('item-name').value = "";
+        document.getElementById('item-company').value = "";
+        document.getElementById('item-tech').value = "";
+        document.getElementById('item-type').value = "";
+        window.addVariantFormRow();
+      }
+    }
+
+    window.closeModal = function() { document.getElementById('itemModal').style.display = 'none'; }
+
+    window.saveItem = function() {
+      const id = document.getElementById('edit-id').value;
+      const name = document.getElementById('item-name').value.trim();
+      const company = document.getElementById('item-company').value.trim();
+      const technical = document.getElementById('item-tech').value.trim();
+      const type = document.getElementById('item-type').value.trim();
+
+      if (!name) {
+          alert("Please provide at least a Product Name.");
+          return;
+      }
+
+      let newVariants = [];
+      document.querySelectorAll('.vb-group').forEach(group => {
+          let vSize = group.querySelector('.inp-size').value.trim();
+          let vPackOf = parseInt(group.querySelector('.inp-packof').value) || 1;
+          let vPackType = group.querySelector('.inp-packtype').value.trim() || 'ctn';
+          let vPrice = parseFloat(group.querySelector('.inp-price').value) || 0;
+          let vCaseQty = parseInt(group.querySelector('.inp-caseqty').value) || 0;
+          let vLooseQty = parseInt(group.querySelector('.inp-looseqty').value) || 0;
+          
+          if (vSize !== "") {
+              let variant = { size: vSize, packOf: vPackOf, packType: vPackType, price: vPrice, caseQty: vCaseQty, looseQty: vLooseQty };
+              normalizeStock(variant); 
+              newVariants.push(variant);
+          }
+      });
+
+      if (id) {
+        const item = items.find(i => i.id == id);
+        if (item) { 
+            Object.assign(item, { name, company, technical, type, variants: newVariants }); 
+        }
+      } else {
+        items.unshift({ id: Date.now(), name, company, technical, type, variants: newVariants });
+      }
+
+      saveToStorage();
+      window.closeModal();
+    }
+
+    window.editItem = function(id) {
+      const item = items.find(i => i.id === id);
+      if (item) window.openModal(item);
+    }
+
+    window.deleteItem = function(id) {
+      if (confirm("Delete this entire product and all its packing sizes permanently?")) {
+        items = items.filter(i => i.id !== id);
+        saveToStorage();
+      }
+    }
+
+  </script>
+</body>
+</html>
